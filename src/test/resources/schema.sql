@@ -2,9 +2,6 @@ CREATE DATABASE IF NOT EXISTS mydb;
 USE mydb;
 
 -- Create the schema
---CREATE SCHEMA IF NOT EXISTS public;
-
---SET SCHEMA public;
 
 CREATE TABLE IF NOT EXISTS atendimento
 (
@@ -20,6 +17,5 @@ CREATE TABLE IF NOT EXISTS atendimento
     DATA_ULTIMA_MODIFICACAO DATETIME              NOT NULL,
     CONSTRAINT pk_atendimento PRIMARY KEY (id)
 );
-
 
 CREATE UNIQUE INDEX idx_atendimento_id_pedido  ON atendimento (id_pedido);
