@@ -62,12 +62,12 @@ public class AtendimentoRepository implements AtendimentoGateway {
                 SELECT a
                 FROM AtendimentoModel a
                 WHERE 1 = 1
-                  AND a.situacao = :SITUACAO
+                  AND a.situacao IN ( :SITUACAO )
                 """;
 
         Query<AtendimentoModel> query = entityManager.unwrap(Session.class).createQuery(hql, AtendimentoModel.class);
         List<AtendimentoModel> result = (List<AtendimentoModel>)query
-                .setParameter("SITUACAO", SituacaoDoAtendimento.RECEBIDO)
+                .setParameter("SITUACAO", SituacaoDoAtendimento.emAberto())
                 .getResultList();
 
         return result.stream()
