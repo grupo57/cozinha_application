@@ -62,8 +62,6 @@ public class SearchAtendimentoUseCase {
 
 	/**
 	 * Listagem de Atendimentos em aberto
-	 * @param data {@link LocalDate}
-	 * @param situacao {@link SituacaoDoAtendimento}
 	 * @return {@link Collection<Atendimento>}
 	 */
 	public Collection<Atendimento> find() {
