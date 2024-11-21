@@ -11,15 +11,21 @@ import java.util.Set;
 
 public interface AtendimentoGateway {
 
-    /**
+	/**
+	 * Listagem de Atendimento em aberto
+     * @return {@link Atendimento}
+	 */
+	Collection<Atendimento> find();
+
+	/**
      * Get by id
      * @param id {@link Long}
      * @return {@link Atendimento}
      */
-    Optional<Atendimento> findById(long id);
+    Optional<Atendimento> findById(Long id);
 
     /**
-     * Get pageable
+     * Pesquisa paginada dos atendimentos por situação
      * @param pageNumber
      * @param pageSize
      * @return {@link Collection < Atendimento >}
@@ -36,9 +42,9 @@ public interface AtendimentoGateway {
     /**
      * Pesquisa atendimentos registrados para um determinado pedido, por padrão um pedido deve ter um único pedido, mas em algumas situações especiais um pedido pode ser dividido em mais de um atendimento
      * @param idPedido
-     * @return Collection<Atendimento>
+     * @return Optional<Atendimento>
      */
-    Collection<Atendimento> findByPedido(Long idPedido);
+    Optional<Atendimento> findByPedido(Long idPedido);
 
     /**
      * Pesquisa dos atendimentos por data e situação
@@ -56,4 +62,5 @@ public interface AtendimentoGateway {
      * @return
      */
     Atendimento criar(Long idPedido, String codigo, Set<ProdutoDTO> produtos);
+
 }

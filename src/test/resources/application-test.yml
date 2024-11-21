@@ -7,7 +7,7 @@ spring:
   sql:
     init:
       continue-on-error: true
-      platform: mysql
+      platform: h2
       schema-locations: classpath:schema.sql
       data-locations: classpath:data.sql
       mode: always
@@ -16,6 +16,7 @@ spring:
       repositories:
         enabled: true
   jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
     show-sql: true
     hibernate:
       ddl-auto: none
@@ -24,12 +25,12 @@ spring:
         default_schema: public
 
   datasource:
-    url: jdbc:mysql://localhost:3306/mydb?allowPublicKeyRetrieval=true
-    username: root
-    password: sobek
-    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;MODE=MYSQL;INIT=CREATE SCHEMA IF NOT EXISTS public
+    username: sa
+    password: secret
+    driverClassName: org.h2.Driver
     schema: classpath:schema.sql
-    
+
 info:
   group-id: "br.com.fiap.soat07"
   artifact-id: "cozinha"

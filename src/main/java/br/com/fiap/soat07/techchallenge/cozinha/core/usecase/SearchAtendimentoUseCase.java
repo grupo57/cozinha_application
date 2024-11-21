@@ -1,14 +1,15 @@
 package br.com.fiap.soat07.techchallenge.cozinha.core.usecase;
 
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Optional;
+
+import org.springframework.stereotype.Component;
+
 import br.com.fiap.soat07.techchallenge.cozinha.core.domain.entity.Atendimento;
 import br.com.fiap.soat07.techchallenge.cozinha.core.domain.enumeration.SituacaoDoAtendimento;
 import br.com.fiap.soat07.techchallenge.cozinha.core.gateway.AtendimentoGateway;
-import org.springframework.stereotype.Component;
-
-import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
 
 @Component
 public class SearchAtendimentoUseCase {
@@ -35,26 +36,37 @@ public class SearchAtendimentoUseCase {
 
 	/**
 	 * Get by Pedido
-	 * @param idPedido {@link String}
-	 * @return {@link Optional<Atendimento>}
+	 * @param id {@link Long}
+	 * @return {@link Collection<Atendimento>}
 	 */
-	public Collection<Atendimento> findByPedido(Long idPedido) {
-		if (idPedido == null)
+	public Optional<Atendimento> findByPedido(Long id) {
+		if (id == null)
 			throw new IllegalArgumentException("Obrigatório informar o código do pedido");
 
-		return atendimentoGateway.findByPedido(idPedido);
+		return atendimentoGateway.findByPedido(id);
 	}
 
 	/**
-	 * Get by Data e Situação
+	 * Listagem de Atendimentos filtrado por Data e Situação
 	 * @param data {@link LocalDate}
+	 * @param situacao {@link SituacaoDoAtendimento}
 	 * @return {@link Collection<Atendimento>}
 	 */
-	public Collection<Atendimento> findByData(LocalDate data, Set<SituacaoDoAtendimento> situacoes) {
+	public Collection<Atendimento> findByData(LocalDate data, EnumSet<SituacaoDoAtendimento> situacoes) {
 		if (data == null)
 			throw new IllegalArgumentException("Obrigatório informar a data");
 
 		return atendimentoGateway.findByData(data, situacoes);
 	}
 
+
+	/**
+	 * Listagem de Atendimentos em aberto
+	 * @param data {@link LocalDate}
+	 * @param situacao {@link SituacaoDoAtendimento}
+	 * @return {@link Collection<Atendimento>}
+	 */
+	public Collection<Atendimento> find() {
+		return atendimentoGateway.find();
+	}	
 }

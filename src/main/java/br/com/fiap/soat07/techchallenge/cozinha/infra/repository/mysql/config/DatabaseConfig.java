@@ -1,13 +1,10 @@
 package br.com.fiap.soat07.techchallenge.cozinha.infra.repository.mysql.config;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-
 import javax.sql.DataSource;
 
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -16,11 +13,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-import lombok.Setter;
-
-@Setter
 @Configuration
-@ConfigurationProperties(prefix =  "application.database")
+@EnableConfigurationProperties
+@ConfigurationProperties(prefix =  "spring.datasource")
 @EntityScan("br.com.fiap.soat07.techchallenge.cozinha.infra.repository.mysql.model")
 @EnableJpaRepositories("br.com.fiap.soat07.techchallenge.cozinha")
 @EnableTransactionManagement
@@ -30,8 +25,6 @@ public class DatabaseConfig {
 	private String driverClassName;
 	private String username;
 	private String password;
-	
-	
 	
 	@Bean
 	public DataSource dataSource() {
@@ -43,34 +36,32 @@ public class DatabaseConfig {
 		return new HikariDataSource(hikariConfig);
 	}
 
-	private String getDriverClassName() {
-		return "com.mysql.cj.jdbc.Driver";
+	public String getUrl() {
+		return url;
+	}
+	public void setUrl(String url) {
+		this.url = url;
 	}
 
-	private String getUrl() {
-		return "jdbc:mysql://localhost:3306/mydb?allowPublicKeyRetrieval=true";
+	public String getDriverClassName() {
+		return driverClassName;
+	}
+	public void setDriverClassName(String driverClassName) {
+		this.driverClassName = driverClassName;
 	}
 
-	private String getUsername() {
-				return "root";
-//		return readFromFile(userName);
+	public String getUsername() {
+		return username;
+	}
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
 	}
 	
-	private String getPassword() {
-				return "sobek";
-//		return readFromFile(password);
-	}
-	
-	private String readFromFile(String filename) {
-        StringBuilder password = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                password.append(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return password.toString();
-    }
 }

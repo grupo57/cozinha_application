@@ -3,7 +3,8 @@ package br.com.fiap.soat07.techchallenge.cozinha.core.domain.enumeration;
 public enum SituacaoDoAtendimento {
     RECEBIDO,
     INICIADO,
-    FINALIZADO,
+    PREPARADO,
+    ENTREGUE,
     CANCELADO;
 
     /**
@@ -11,7 +12,7 @@ public enum SituacaoDoAtendimento {
      * @return boolean
      */
     public boolean isEncerrado() {
-        return this.equals(SituacaoDoAtendimento.FINALIZADO) || this.equals(SituacaoDoAtendimento.CANCELADO);
+        return this.equals(SituacaoDoAtendimento.ENTREGUE) || this.equals(SituacaoDoAtendimento.CANCELADO);
     }
 
 }

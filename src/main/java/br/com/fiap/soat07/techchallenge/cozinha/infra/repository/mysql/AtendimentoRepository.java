@@ -1,20 +1,25 @@
 package br.com.fiap.soat07.techchallenge.cozinha.infra.repository.mysql;
 
-import br.com.fiap.soat07.techchallenge.cozinha.Utils;
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import org.hibernate.Session;
+import org.hibernate.query.Query;
+import org.springframework.stereotype.Repository;
+
 import br.com.fiap.soat07.techchallenge.cozinha.core.domain.entity.Atendimento;
 import br.com.fiap.soat07.techchallenge.cozinha.core.domain.enumeration.SituacaoDoAtendimento;
 import br.com.fiap.soat07.techchallenge.cozinha.core.exception.AtendimentoNotFoundException;
 import br.com.fiap.soat07.techchallenge.cozinha.core.gateway.AtendimentoGateway;
 import br.com.fiap.soat07.techchallenge.cozinha.infra.repository.mysql.model.AtendimentoModel;
 import br.com.fiap.soat07.techchallenge.cozinha.infra.rest.dto.ProdutoDTO;
-import jakarta.persistence.*;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
-import org.springframework.stereotype.Repository;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
 
 @Repository
 public class AtendimentoRepository implements AtendimentoGateway {
@@ -46,23 +51,49 @@ public class AtendimentoRepository implements AtendimentoGateway {
         }
     }
 
+    
+    /**
+     * Listagem de Atendimentos em aberto
+     *
+     * @return {@link Collection<Atendimento>}
+     */
+    public Collection<Atendimento> find() {
+        String hql = """
+                SELECT a
+                FROM AtendimentoModel a
+                WHERE 1 = 1
+                  AND a.situacao = :SITUACAO
+                """;
 
+        Query<AtendimentoModel> query = entityManager.unwrap(Session.class).createQuery(hql, AtendimentoModel.class);
+        List<AtendimentoModel> result = (List<AtendimentoModel>)query
+                .setParameter("SITUACAO", SituacaoDoAtendimento.RECEBIDO)
+                .getResultList();
+
+        return result.stream()
+                .map(model -> new Atendimento(model.getId(), model.getIdPedido(), model.getCodigo(), model.getSituacao(), model.getDataRecebido(), model.getDataIniciado(), model.getDataPreparado(), model.getDataConcluido(), Collections.emptySet()))
+                .toList();
+    }
+
+    
     /**
      * Find by id
      *
      * @param id {@link Long}
      * @return {@link Optional<Atendimento>}
      */
-    public Optional<Atendimento> findById(long id) {
+    public Optional<Atendimento> findById(Long id) {
         return _findById(id)
                 .map(model -> new Atendimento(
-                        model.getId(), model.getIdPedido(), model.getCodigo(), model.getSituacao(), model.getDataRecebido(), model.getDataIniciado(), model.getDataConcluido(), Collections.emptySet()
+                        model.getId(), model.getIdPedido(), model.getCodigo(), model.getSituacao(), model.getDataRecebido(), model.getDataIniciado(), model.getDataPreparado(), model.getDataConcluido(), Collections.emptySet()
                 ));
     }
 
     @Override
     public Atendimento save(Atendimento atendimento) {
         AtendimentoModel model = null;
+        if (atendimento == null)
+        	throw new IllegalArgumentException("Obrigatório preencher o atendimento");
         if (atendimento.getId() == null) {
             model = new AtendimentoModel(atendimento.getIdPedido(), atendimento.getCodigo());
             entityManager.persist(model);
@@ -70,10 +101,12 @@ public class AtendimentoRepository implements AtendimentoGateway {
             model = _findById(atendimento.getId()).orElseThrow(() -> new AtendimentoNotFoundException(atendimento.getId()));
             model.setCodigo(atendimento.getCodigo());
             model.setSituacao(atendimento.getSituacao());
+            model.setDataIniciado(atendimento.getIniciado());
+            model.setDataConcluido(atendimento.getConcluido());
             entityManager.merge(model);
         }
 
-        return new Atendimento(model.getId(), model.getIdPedido(), model.getCodigo(), model.getSituacao(), model.getDataRecebido(), model.getDataIniciado(), model.getDataConcluido(), Collections.emptySet());
+        return new Atendimento(model.getId(), model.getIdPedido(), model.getCodigo(), model.getSituacao(), model.getDataRecebido(), model.getDataIniciado(), model.getDataPreparado(), model.getDataConcluido(), Collections.emptySet());
     }
 
     @Override
@@ -90,21 +123,21 @@ public class AtendimentoRepository implements AtendimentoGateway {
 
         Query<AtendimentoModel> query = entityManager.unwrap(Session.class).createQuery(hql, AtendimentoModel.class);
         List<AtendimentoModel> result = (List<AtendimentoModel>)query
-                .setParameter("situacao", situacao)
+                .setParameter("SITUACAO", situacao)
                 .setFirstResult(firstResult)
                 .setMaxResults(pageSize)
                 .getResultList();
 
         return result.stream()
-                .map(model -> new Atendimento(model.getId(), model.getIdPedido(), model.getCodigo(), model.getSituacao(), model.getDataRecebido(), model.getDataIniciado(), model.getDataConcluido(), Collections.emptySet()))
+                .map(model -> new Atendimento(model.getId(), model.getIdPedido(), model.getCodigo(), model.getSituacao(), model.getDataRecebido(), model.getDataIniciado(), model.getDataPreparado(), model.getDataConcluido(), Collections.emptySet()))
                 .toList();
     }
 
 
     @Override
-    public Collection<Atendimento> findByPedido(Long idPedido) {
+    public Optional<Atendimento> findByPedido(Long idPedido) {
         if (idPedido == null)
-            return Collections.emptyList();
+            return Optional.empty();
 
         String hql = """
             SELECT a
@@ -119,8 +152,8 @@ public class AtendimentoRepository implements AtendimentoGateway {
                 .getResultList();
 
         return result.stream()
-                .map(model -> new Atendimento(model.getId(), model.getIdPedido(), model.getCodigo(), model.getSituacao(), model.getDataRecebido(), model.getDataIniciado(), model.getDataConcluido(), Collections.emptySet()))
-                .toList();
+                .map(model -> new Atendimento(model.getId(), model.getIdPedido(), model.getCodigo(), model.getSituacao(), model.getDataRecebido(), model.getDataIniciado(), model.getDataPreparado(), model.getDataConcluido(), Collections.emptySet()))
+                .findFirst();
     }
 
     @Override
@@ -148,7 +181,7 @@ public class AtendimentoRepository implements AtendimentoGateway {
                 .getResultList();
 
         return result.stream()
-                .map(model -> new Atendimento(model.getId(), model.getIdPedido(), model.getCodigo(), model.getSituacao(), model.getDataRecebido(), model.getDataIniciado(), model.getDataConcluido(), Collections.emptySet()))
+                .map(model -> new Atendimento(model.getId(), model.getIdPedido(), model.getCodigo(), model.getSituacao(), model.getDataRecebido(), model.getDataIniciado(), model.getDataPreparado(), model.getDataConcluido(), Collections.emptySet()))
                 .toList();
     }
 

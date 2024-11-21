@@ -6,6 +6,8 @@ import java.util.Objects;
 
 import br.com.fiap.soat07.techchallenge.cozinha.core.domain.enumeration.SituacaoDoAtendimento;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -19,7 +21,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @Setter
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "ATENDIMENTO")
+@Table(name = "ATENDIMENTO", schema = "public")
 public class AtendimentoModel {
 	
 	@Id
@@ -27,31 +29,39 @@ public class AtendimentoModel {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false, updatable = false)
+	@NotNull
+	@Column(name = "ID_PEDIDO", nullable = false, updatable = false)
 	private Long idPedido;
 
-	@Column
+	@Size(min = 1, max = 30)
+	@NotNull
+	@Column(name = "CODIGO", length = 30, nullable = false)
 	private String codigo;
 
+	@NotNull
 	@Enumerated(EnumType.STRING)
-	@Column(length = 30, nullable = false)
+	@Column(name = "SITUACAO", length = 30, nullable = false)
 	private SituacaoDoAtendimento situacao;
 
-	@Column
+	@NotNull
+	@Column(name = "DATA_RECEBIDO", nullable = false)
 	private LocalDateTime dataRecebido;
 
-	@Column
+	@Column(name = "DATA_INICIADO")
 	private LocalDateTime dataIniciado;
 
-	@Column
+	@Column(name = "DATA_PREPARADO")
+	private LocalDateTime dataPreparado;
+	
+	@Column(name = "DATA_CONCLUIDO")
 	private LocalDateTime dataConcluido;
 
 	@CreatedDate
-    @Column(nullable = false, updatable = false)
+    @Column(name = "DATA_CRIACAO", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
 
     @LastModifiedDate
-    @Column(nullable = false)
+    @Column(name = "DATA_ULTIMA_MODIFICACAO", nullable = false)
     private LocalDateTime dataUltimaModificacao;
 
 
@@ -59,6 +69,7 @@ public class AtendimentoModel {
 	protected AtendimentoModel() {
 		this.situacao = SituacaoDoAtendimento.RECEBIDO;
 		this.dataCriacao = LocalDateTime.now();
+		this.dataUltimaModificacao = dataCriacao;
 		this.dataRecebido = dataCriacao;
 	}
 	public AtendimentoModel(Long idPedido, String codigo) {
@@ -107,6 +118,13 @@ public class AtendimentoModel {
 	public void setDataIniciado(LocalDateTime dataIniciado) {
 		this.dataIniciado = dataIniciado;
 	}
+	
+	public LocalDateTime getDataPreparado() {
+		return dataPreparado;
+	}
+	public void setDataPreparado(LocalDateTime dataPreparado) {
+		this.dataPreparado = dataPreparado;
+	}
 
 	public LocalDateTime getDataConcluido() {
 		return dataConcluido;
@@ -121,7 +139,7 @@ public class AtendimentoModel {
 
 	@Override
 	public String toString() {
-		return "PedidoModel{" +
+		return "AtendimentoModel{" +
 				"id=" + id +
 				", pedido='" + idPedido + '\'' +
 				", data='" + getData() + '\'' +
@@ -134,7 +152,7 @@ public class AtendimentoModel {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof AtendimentoModel that)) return false;
-        return getData() == that.getData() && Objects.equals(getCodigo(), that.getCodigo());
+        return Objects.equals(getData(), that.getData()) && Objects.equals(getCodigo(), that.getCodigo());
 	}
 
 	@Override

@@ -1,11 +1,10 @@
 package br.com.fiap.soat07.techchallenge.cozinha.core.domain.entity;
 
-import br.com.fiap.soat07.techchallenge.cozinha.core.domain.enumeration.PedidoStatusEnum;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+
+import br.com.fiap.soat07.techchallenge.cozinha.core.domain.enumeration.PedidoStatusEnum;
 
 public class Pedido {
 	
@@ -17,11 +16,12 @@ public class Pedido {
 
 	public Pedido() {
 		this.produtos = new HashSet<>();
+		this.status = PedidoStatusEnum.PREPARO;
 	}
-	public Pedido(Long id, String nomeCliente, String codigo, PedidoStatusEnum status) {
+	public Pedido(Long id, String codigo, String nomeCliente, PedidoStatusEnum status) {
 		this.id = id;
-		this.nomeCliente = nomeCliente;
 		this.codigo = codigo;
+		this.nomeCliente = nomeCliente;
 		this.status = status;
 	}
 
@@ -47,18 +47,25 @@ public class Pedido {
 		return produtos;
 	}
 
-	public BigDecimal getValor() {
-		if (getProdutos() == null)
-			return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_EVEN);
-
-		return getProdutos().stream()
-				.map(Produto::getValor)
-		        .reduce(BigDecimal.ZERO, BigDecimal::add);
-	}
-
 	@Override
 	public String toString() {
 		return nomeCliente == null || nomeCliente.isEmpty() ? codigo : nomeCliente;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(codigo, nomeCliente);
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Pedido other = (Pedido) obj;
+		return Objects.equals(codigo, other.codigo) && Objects.equals(nomeCliente, other.nomeCliente);
 	}
 
 }

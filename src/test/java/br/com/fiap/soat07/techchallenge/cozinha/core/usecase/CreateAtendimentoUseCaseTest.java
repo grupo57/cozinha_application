@@ -1,16 +1,18 @@
 package br.com.fiap.soat07.techchallenge.cozinha.core.usecase;
 
-import br.com.fiap.soat07.techchallenge.cozinha.core.domain.entity.Atendimento;
-import br.com.fiap.soat07.techchallenge.cozinha.core.domain.enumeration.SituacaoDoAtendimento;
-import br.com.fiap.soat07.techchallenge.cozinha.core.domain.enumeration.TipoProdutoEnum;
-import br.com.fiap.soat07.techchallenge.cozinha.core.exception.PedidoJaAtendidoException;
-import br.com.fiap.soat07.techchallenge.cozinha.core.gateway.AtendimentoGateway;
-import br.com.fiap.soat07.techchallenge.cozinha.infra.rest.dto.PedidoDTO;
-import br.com.fiap.soat07.techchallenge.cozinha.infra.rest.dto.ProdutoDTO;
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,13 +20,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import br.com.fiap.soat07.techchallenge.cozinha.core.domain.entity.Atendimento;
+import br.com.fiap.soat07.techchallenge.cozinha.core.domain.enumeration.TipoProdutoEnum;
+import br.com.fiap.soat07.techchallenge.cozinha.core.exception.PedidoJaAtendidoException;
+import br.com.fiap.soat07.techchallenge.cozinha.core.gateway.AtendimentoGateway;
+import br.com.fiap.soat07.techchallenge.cozinha.infra.rest.dto.PedidoDTO;
+import br.com.fiap.soat07.techchallenge.cozinha.infra.rest.dto.ProdutoDTO;
 
 class CreateAtendimentoUseCaseTest {
 
@@ -44,53 +45,67 @@ class CreateAtendimentoUseCaseTest {
         pedidoDTO.setCodigo("123");
         pedidoDTO.setCliente("Cliente X");
         pedidoDTO.setProdutos(new HashSet(List.of(
-                new ProdutoDTO(1L, "nome1", "codigo1", BigDecimal.valueOf(10), TipoProdutoEnum.ACOMPANHAMENTO),
-                new ProdutoDTO(2L, "nome2", "codigo2", BigDecimal.valueOf(20), TipoProdutoEnum.LANCHE)
+                new ProdutoDTO(1L, "nome1", "codigo1", TipoProdutoEnum.ACOMPANHAMENTO),
+                new ProdutoDTO(2L, "nome2", "codigo2", TipoProdutoEnum.LANCHE)
                 )));
     }
 
     @Test
     void givenNullPedidoDTO_whenExecute_thenThrowsIllegalArgumentException() {
-        // Ação & Validação
-        assertThrows(IllegalArgumentException.class, () -> createAtendimentoUseCase.execute(null));
-    }
+        // Quando o pedidoDTO for null, deve lançar IllegalArgumentException
+        assertThatThrownBy(() -> createAtendimentoUseCase.execute(null))
+                .isInstanceOf(IllegalArgumentException.class);    }
 
     @Test
     void givenEmptyCodigo_whenExecute_thenThrowsIllegalArgumentException() {
-        // Preparando o pedido com código vazio
         pedidoDTO.setCodigo("");
 
         // Ação & Validação
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> createAtendimentoUseCase.execute(pedidoDTO));
-        assertEquals("Obrigatório informar o codigo do pedido", exception.getMessage());
+        assertThatThrownBy(() -> createAtendimentoUseCase.execute(pedidoDTO))
+        		.isInstanceOf(IllegalArgumentException.class)
+        		.hasMessage("Obrigatório informar o codigo do pedido");
     }
+    
+    @Test
+    void givenNullCodigo_whenExecute_thenThrowsIllegalArgumentException() {
+        pedidoDTO.setCodigo(null);
+        
+        assertThatThrownBy(() -> createAtendimentoUseCase.execute(pedidoDTO))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Obrigatório informar o codigo do pedido");
+    }    
 
     @Test
     void givenPedidoJaAtendido_whenExecute_thenThrowsPedidoJaAtendidoException() {
-        // Configuração do comportamento do mock
-        LocalDateTime inicio = LocalDateTime.now();
-        when(atendimentoGateway.findByPedido(pedidoDTO.getId())).thenReturn(List.of(
-                Atendimento.recebido(1L, pedidoDTO.getId(), pedidoDTO.getCodigo(), pedidoDTO.getProdutos())));
-
-        // Ação & Validação
-        PedidoJaAtendidoException exception = assertThrows(PedidoJaAtendidoException.class, () -> createAtendimentoUseCase.execute(pedidoDTO));
-        assertEquals(pedidoDTO.getId(), exception.getPedidoId());
+        // Simula que o pedido já foi atendido
+        when(atendimentoGateway.findByPedido(pedidoDTO.getId())).thenReturn(Optional.of(
+        		Atendimento.recebido(1L, pedidoDTO.getId(), pedidoDTO.getCodigo(), pedidoDTO.getProdutos()))
+        		);
+        
+        assertThatThrownBy(() -> createAtendimentoUseCase.execute(pedidoDTO))
+                .isInstanceOf(PedidoJaAtendidoException.class)
+                .hasMessage("Pedido 1 já foi atendido");        
     }
 
     @Test
     void givenValidPedido_whenExecute_thenCreatesAtendimento() {
         // Mocking comportamento do gateway para criar o atendimento
-        LocalDateTime inicio = LocalDateTime.now();
-        when(atendimentoGateway.findByPedido(pedidoDTO.getId())).thenReturn(List.of());
+        when(atendimentoGateway.findByPedido(pedidoDTO.getId()))
+        		.thenReturn(Optional.empty());
         when(atendimentoGateway.criar(anyLong(), anyString(), anySet()))
-                .thenReturn(Atendimento.recebido(1L, pedidoDTO.getId(), pedidoDTO.getCodigo(), pedidoDTO.getProdutos()));
+            	.thenReturn(Atendimento.recebido(1L, pedidoDTO.getId(), pedidoDTO.getCodigo(), pedidoDTO.getProdutos()));
 
         // Ação
         Atendimento atendimento = createAtendimentoUseCase.execute(pedidoDTO);
 
         // Validação
-        verify(atendimentoGateway).criar(eq(pedidoDTO.getId()), eq("Cliente X 123"), eq(pedidoDTO.getProdutos()));
+        // Verifica se o atendimento foi criado corretamente
         assertThat(atendimento).isNotNull();
+        verify(atendimentoGateway).criar(
+        		eq(1L),
+                eq("Cliente X 123"), 
+                eq(pedidoDTO.getProdutos())
+        );
     }
 
     @Test
@@ -100,7 +115,7 @@ class CreateAtendimentoUseCaseTest {
 
         // Mocking comportamento do gateway para criar o atendimento
         LocalDateTime inicio = LocalDateTime.now();
-        when(atendimentoGateway.findByPedido(pedidoDTO.getId())).thenReturn(List.of());
+        when(atendimentoGateway.findByPedido(pedidoDTO.getId())).thenReturn(Optional.empty());
         when(atendimentoGateway.criar(anyLong(), anyString(), anySet()))
                 .thenReturn(Atendimento.recebido(1L, pedidoDTO.getId(), pedidoDTO.getCodigo(), pedidoDTO.getProdutos()));
 
@@ -108,7 +123,10 @@ class CreateAtendimentoUseCaseTest {
         Atendimento atendimento = createAtendimentoUseCase.execute(pedidoDTO);
 
         // Validação
-        verify(atendimentoGateway).criar(eq(pedidoDTO.getId()), eq("123"), eq(pedidoDTO.getProdutos()));
+        verify(atendimentoGateway).criar(
+        		eq(pedidoDTO.getId()), 
+        		eq("123"), 
+        		eq(pedidoDTO.getProdutos()));
         assertThat(atendimento).isNotNull();
     }
 }
