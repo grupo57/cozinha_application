@@ -39,9 +39,9 @@ public class CozinhaController {
 
 
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Listagem", content =
+            @ApiResponse(responseCode = "200", description = "Listagem de atedimento em ABERTO", content =
                     { @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = PedidoDTO.class)) }),
+                    @Schema(implementation = Atendimento.class)) }),
             @ApiResponse(responseCode = "500", description = "Internal server error", content =
                     { @Content(mediaType = "application/json", schema =
                     @Schema(implementation = ErrorResponse.class)) }) })
@@ -56,11 +56,11 @@ public class CozinhaController {
     }
     
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Created", content =
+            @ApiResponse(responseCode = "201", description = "Cria um atendimento com base num pedido", content =
                     { @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = PedidoDTO.class)) }),
-            @ApiResponse(responseCode = "400", description = "Invalid values"),
-            @ApiResponse(responseCode = "400", description = "Pedido  already exists"),
+                    @Schema(implementation = Atendimento.class)) }),
+            @ApiResponse(responseCode = "400", description = "Parâmetros inválidos"),
+            @ApiResponse(responseCode = "400", description = "Pedido já possui atendimento"),
             @ApiResponse(responseCode = "500", description = "Internal server error", content =
                     { @Content(mediaType = "application/json", schema =
                     @Schema(implementation = ErrorResponse.class)) }) })
@@ -83,11 +83,11 @@ public class CozinhaController {
     }
 
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Created", content =
+            @ApiResponse(responseCode = "200", description = "Recupera o atendimento associado ao número do pedido informado", content =
                     { @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = PedidoDTO.class)) }),
-            @ApiResponse(responseCode = "400", description = "Invalid values"),
-            @ApiResponse(responseCode = "400", description = "Pedido  already exists"),
+                    @Schema(implementation = Atendimento.class)) }),
+            @ApiResponse(responseCode = "400", description = "Parâmetros inválidos"),
+            @ApiResponse(responseCode = "404", description = "Atendimento não encontrado"),
             @ApiResponse(responseCode = "500", description = "Internal server error", content =
                     { @Content(mediaType = "application/json", schema =
                     @Schema(implementation = ErrorResponse.class)) }) })
@@ -111,11 +111,11 @@ public class CozinhaController {
     }
 
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Created", content =
+            @ApiResponse(responseCode = "200", description = "Altera a situação de um atendimento para INICIADO", content =
                     { @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = PedidoDTO.class)) }),
-            @ApiResponse(responseCode = "400", description = "Invalid values"),
-            @ApiResponse(responseCode = "400", description = "Pedido  already exists"),
+                    @Schema(implementation = Atendimento.class)) }),
+            @ApiResponse(responseCode = "400", description = "Parâmetros inválidos"),
+            @ApiResponse(responseCode = "404", description = "Atendimento não encontrado"),
             @ApiResponse(responseCode = "500", description = "Internal server error", content =
                     { @Content(mediaType = "application/json", schema =
                     @Schema(implementation = ErrorResponse.class)) }) })
@@ -140,11 +140,40 @@ public class CozinhaController {
     }
 
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Created", content =
+            @ApiResponse(responseCode = "200", description = "Altera a situação de um atendimento para PREPARADO", content =
                     { @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = PedidoDTO.class)) }),
-            @ApiResponse(responseCode = "400", description = "Invalid values"),
-            @ApiResponse(responseCode = "400", description = "Pedido  already exists"),
+                    @Schema(implementation = Atendimento.class)) }),
+            @ApiResponse(responseCode = "400", description = "Parâmetros inválidos"),
+            @ApiResponse(responseCode = "404", description = "Atendimento não encontrado"),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content =
+                    { @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = ErrorResponse.class)) }) })
+    @GetMapping(value = "/atendimentos/{id}/preparado")
+    @Transactional
+    public ResponseEntity<?> preparado(@PathVariable final Long id) {
+        if (id == null)
+            return ResponseEntity.badRequest().body("Obrigatório informar o número do atendimento");
+
+        cozinhaService.getSearchAtendimentoUseCase().find().stream().forEach(System.err::println);
+        try {
+            Optional<Atendimento> atendimentoOp = cozinhaService.getSearchAtendimentoUseCase()
+                    .findByPedido(id);
+            if (atendimentoOp.isEmpty())
+                return ResponseEntity.notFound().build();
+            Atendimento atendimento = atendimentoOp.get();
+            atendimento = cozinhaService.getUpdateAtendimentoSituacaoIniciado().execute(atendimento);
+            return ResponseEntity.ok(atendimento);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(e.getMessage());
+        }
+    }
+
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Altera a situação de um atendimento para ENTREGUE", content =
+                    { @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Atendimento.class)) }),
+            @ApiResponse(responseCode = "400", description = "Parâmetros inválidos"),
+            @ApiResponse(responseCode = "404", description = "Atendimento não encontrado"),
             @ApiResponse(responseCode = "500", description = "Internal server error", content =
                     { @Content(mediaType = "application/json", schema =
                     @Schema(implementation = ErrorResponse.class)) }) })
