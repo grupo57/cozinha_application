@@ -179,7 +179,7 @@ public class CozinhaController {
                     @Schema(implementation = ErrorResponse.class)) }) })
     @GetMapping(value = "/atendimentos/{id}/concluido")
     @Transactional
-    public ResponseEntity<?> concluido(@PathVariable final Long id) {
+    public ResponseEntity<?> entregue(@PathVariable final Long id) {
         if (id == null)
             return ResponseEntity.badRequest().body("Obrigatório informar o número do atendimento");
 

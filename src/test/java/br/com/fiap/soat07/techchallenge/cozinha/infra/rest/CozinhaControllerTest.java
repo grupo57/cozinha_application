@@ -264,7 +264,7 @@ class CozinhaControllerTest {
 		// given
 		// when
 		// then
-        var response = controller.concluido(null);
+        var response = controller.entregue(null);
         assertThat(response.getStatusCode().value()).isEqualTo(400);
 		assertThat(response.getBody()).isEqualTo("Obrigatório informar o número do atendimento");
 	}	
@@ -280,7 +280,7 @@ class CozinhaControllerTest {
 		when(updateAtendimentoConcluido.execute(any(Atendimento.class))).thenReturn(atendimento);
 
 		// then
-        var response = controller.concluido(1L);
+        var response = controller.entregue(1L);
         assertThat(response.getStatusCode().value()).isEqualTo(200);
 		assertThat(response.getBody()).isEqualTo(atendimento);
 		assertThat(((Atendimento)response.getBody()).getSituacao()).isEqualTo(SituacaoDoAtendimento.ENTREGUE);
@@ -293,7 +293,7 @@ class CozinhaControllerTest {
 		when(searchAtendimentoUseCase.findByPedido(any(Long.class))).thenReturn(Optional.empty());
 
 		// then
-		var response = controller.concluido(1L);
+		var response = controller.entregue(1L);
         assertThat(response.getStatusCode().value()).isEqualTo(404);
 	}
 	
@@ -304,7 +304,7 @@ class CozinhaControllerTest {
 		when(searchAtendimentoUseCase.findByPedido(any(Long.class))).thenThrow(new RuntimeException("Mensagem de erro"));
 
 		// then
-        var response = controller.concluido(1L);
+        var response = controller.entregue(1L);
         assertThat(response.getStatusCode().value()).isEqualTo(500);
 		assertThat(response.getBody()).isEqualTo("Mensagem de erro");
 	}	
@@ -320,7 +320,7 @@ class CozinhaControllerTest {
 		when(updateAtendimentoConcluido.execute(any(Atendimento.class))).thenThrow(new RuntimeException("Mensagem de erro"));
 
 		// then
-        var response = controller.concluido(1L);
+        var response = controller.entregue(1L);
         assertThat(response.getStatusCode().value()).isEqualTo(500);
 		assertThat(response.getBody()).isEqualTo("Mensagem de erro");
 	}	
