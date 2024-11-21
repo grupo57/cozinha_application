@@ -49,7 +49,7 @@ public class SearchAtendimentoUseCase {
 	/**
 	 * Listagem de Atendimentos filtrado por Data e Situação
 	 * @param data {@link LocalDate}
-	 * @param situacao {@link SituacaoDoAtendimento}
+	 * @param situacoes {@link SituacaoDoAtendimento}
 	 * @return {@link Collection<Atendimento>}
 	 */
 	public Collection<Atendimento> findByData(LocalDate data, EnumSet<SituacaoDoAtendimento> situacoes) {
