@@ -79,7 +79,7 @@ public class CozinhaController {
             return ResponseEntity.status(500).body(e.getMessage());
         }
 
-        return ResponseEntity.created(URI.create("/cozinha/atendimentos/"+atendimento.getId())).build();
+        return ResponseEntity.created(URI.create("/cozinha/atendimentos/"+atendimento.getIdPedido())).build();
     }
 
     @ApiResponses(value = {
